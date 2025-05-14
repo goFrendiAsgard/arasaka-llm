@@ -39,7 +39,7 @@ async def proxy(path: str, request: Request):
     outgoing_url = get_outgoing_url(path)
     outgoing_headers = get_outgoing_request_header(path, request)
     incoming_payload = await get_incoming_payload(request)
-    outgoing_payload = await alter_payload(incoming_payload)
+    outgoing_payload = await alter_payload(path, incoming_payload)
     stream_enabled = should_stream(outgoing_url, incoming_payload)
     outgoing_query_params = get_outgoing_query_params(request, path)
     logger.debug(

@@ -1,5 +1,6 @@
 import hashlib
 import json
+import re
 from copy import deepcopy
 from typing import Any
 
@@ -8,6 +9,7 @@ from config import (
     LLM_ALIGNMENT,
     LLM_API_KEY,
     LLM_API_URL,
+    LLM_MODEL,
     SUMMARIZATION_MODEL,
     SUMMARIZATION_SYSTEM_PROMPT,
     SUMMARIZATION_THRESHOLD,
@@ -19,13 +21,17 @@ from pydantic_ai.providers.google_gla import GoogleGLAProvider
 from pydantic_ai.usage import Usage
 
 
-async def alter_payload(original_payload: Any) -> Any:
+async def alter_payload(path: str, original_payload: Any) -> Any:
     if not isinstance(original_payload, dict):
         return original_payload
-    payload = deepcopy(original_payload)
-    payload = maybe_inject_alignment(payload)
-    payload = await maybe_inject_summarization(payload)
-    return payload
+    if LLM_API_URL.startswith(
+        "https://generativelanguage.googleapis.com"
+    ) and path.startswith("v1beta/models"):
+        payload = deepcopy(original_payload)
+        payload = maybe_inject_alignment(payload)
+        payload = await maybe_inject_summarization(payload)
+        return payload
+    return original_payload
 
 
 def maybe_inject_alignment(payload: dict[str, Any]) -> dict[str, Any]:
